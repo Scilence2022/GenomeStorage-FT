@@ -1,205 +1,142 @@
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+
 import random
 from utils import *
-from DNAdroplet import DNADroplet
-#from fountain import Fountain
 from DNAfountain import DNAFountain
-from glass import Glass
-from crc16pure import *
 from test_utils import *
+
 import copy
-import os
+import time
+import os.path
+import sys
+import getopt
 
 
-data_block_length = 30
-test_num = 10
-fountain_seed = 2
+chunk_size = 35
+fountain_seed = 1
+droplet_num = 2000
+double_index = False
+start_index = 1
+work_dir = r''
+input_file = ''
+output_file = ''  # Will be set to input_file + ".fasta" if not specified
+index_bytes = 4
+anchor_bytes = 4
+ec_bytes = 2
+redundancy_rate = 0
+test_num = 0
 
-work_dir = r'./input_files'  + '/'
-
-print('\nReading input files ...')
-
-# fileA = open(work_dir + r'Babel-A.jpg', 'rb')
-file_tju = open(work_dir + r'tju.jpg', 'rb')
-fileA = open(work_dir + r'BCA.jpg', 'rb')
-fileB = open(work_dir + r'HECHAIN.jpg', 'rb')
-fileC = open(work_dir + r'ZONFF.jpg', 'rb')
-
-filebytes_tju = file_tju.read()
-file_tju.close()
-filebytesA = fileA.read()
-file_tju.close()
-filebytesB = fileB.read()
-fileB.close()
-filebytesC = fileC.read()
-fileC.close()
-
-pass_default = bytes(8)
-pass_a = 0b10101110001111011000010100110110
-pass_b = 0b10011101011111101010101101110101
-pass_c = 0b00110011010000110010111001000011
-
-
-fountain_init_index = 3111111
-ft_default = DNAFountain(filebytes_tju, data_block_length, fountain_init_index, fountain_seed, 16, 16, 8)
-ft_default.fix_bytes()
-ft_default.des = True
-ft_default.sec_key = pass_default
-
-
-ft_a = DNAFountain(filebytesA, data_block_length, fountain_init_index, fountain_seed, 16, 16, 8)
-ft_a.des = True
-ft_a.sec_key = pass_a.to_bytes(8, byteorder ='big')
-
-ft_b = DNAFountain(filebytesB, data_block_length, fountain_init_index, fountain_seed, 16, 16, 8)
-ft_b.des = True
-ft_b.sec_key = pass_b.to_bytes(8, byteorder ='big')
-
-ft_c = DNAFountain(filebytesC, data_block_length, fountain_init_index, fountain_seed, 16, 16, 8)
-ft_c.des = True
-ft_c.sec_key = pass_c.to_bytes(8, byteorder ='big')
-
-
-print('\nGenerating DNA data droplets and run strand dropout test ......')
-failed_gts = []
-
-total_size = 3000 #int(fdna1.num_of_chunks * 1.15)
-core_size = int(total_size*0.96)
-
-droplet_four_pics = []
-
-droplet_all = get_droplets(total_size, ft_default)
-droplet_four_pics.append(droplet_all)
-suc_num_default = 0
-for i in range(0, test_num):
-
-    droplet_sample = []
-    # droplet_sample[i] = random.sample(range(0, total_size), core_size)
-    random.seed(i + 1)
-    for j in random.sample(range(0, total_size), core_size):
-        droplet_sample.append(copy.deepcopy(droplet_all[j]))
-
-    if test_droplets(droplet_sample, ft_default):
-        suc_num_default = suc_num_default + 1
-
-print("With a dropout rate of 4%, " + str(suc_num_default) + " succeed in a total of " + str(test_num) + " runs.")
-print('\nGenerating DNA data droplets and run strand dropout test ......')
-
-droplet_all = get_droplets(total_size, ft_a)
-droplet_four_pics.append(droplet_all)
-
-suc_num_a = 0
-for i in range(0, test_num):
-
-    droplet_sample = []
-    # droplet_sample[i] = random.sample(range(0, total_size), core_size)
-    random.seed(i + 1)
-    for j in random.sample(range(0, total_size), core_size):
-        droplet_sample.append(copy.deepcopy(droplet_all[j]))
-
-    if test_droplets(droplet_sample, ft_a):
-        suc_num_a = suc_num_a + 1
-
-print("With a dropout rate of 4%, " + str(suc_num_a) + " succeed in a total of " + str(test_num) + " runs.")
-print('\nGenerating DNA data droplets and run strand dropout test ......')
-
-droplet_all = get_droplets(total_size, ft_b)
-droplet_four_pics.append(droplet_all)
-suc_num_b = 0
-for i in range(0, test_num):
-
-    droplet_sample = []
-    # droplet_sample[i] = random.sample(range(0, total_size), core_size)
-    random.seed(i + 1)
-    for j in random.sample(range(0, total_size), core_size):
-        droplet_sample.append(copy.deepcopy(droplet_all[j]))
-
-    if test_droplets(droplet_sample, ft_b):
-        suc_num_b = suc_num_b + 1
-
-print("With a dropout rate of 4%, " + str(suc_num_b) + " succeed in a total of " + str(test_num) + " runs.")
-print('\nGenerating DNA data droplets and run strand dropout test ......')
-
-droplet_all = get_droplets(total_size, ft_c)
-droplet_four_pics.append(droplet_all)
-suc_num_c = 0
-for i in range(0, test_num):
-
-    droplet_sample = []
-    # droplet_sample[i] = random.sample(range(0, total_size), core_size)
-    random.seed(i + 1)
-    for j in random.sample(range(0, total_size), core_size):
-        droplet_sample.append(copy.deepcopy(droplet_all[j]))
-
-    if test_droplets(droplet_sample, ft_c):
-        suc_num_c = suc_num_c + 1
-
-print("With a dropout rate of 4%, " + str(suc_num_c) + " succeed in a total of " + str(test_num) + " runs.")
-
-
-print('\nOutputting strand sequences and details ......')
 
 p1 = 'CCTGCAGAGTAGCATGTC'  # 5'-->3'
 p2 = 'CTGACACTGATGCATCCG'  # complement seq of P2
 
-for i in range(0, 4):
-    file2 = open(work_dir + r'babel_v2.DNAs.tab.sim.' + str(i), 'tw')
-    #file2.write('Head Index\tData\tDNA\tDNA-Primers\tDegree\tChunk Nums\tTail Index\n')
-    for dps in droplet_four_pics[i]:
-        file2.write(str(dps.head_index))
-        file2.write('\t')
-        file2.write(p1)
-        file2.write(dps.to_DNA_CRC_sIndex())
-        file2.write(p2)
-        file2.write('\n')
-    file2.close()
+
+opts,args = getopt.getopt(sys.argv[1:],'-h-i:-o:-c:-n:-s:-r:-d-l:',
+                          ['help','input=','output=',  'chunk_size=', 'redundancy_rate=', 'droplet_num=', 'seed=', 'initial_index=', 'index_bytes=', 'ec_bytes=', 'test_num='])
+
+usage = 'Usage:\n' + r'      python encode.py -i input_file -n number_of_droplets -o output.fasta [Options]'
+options = 'Options:\n'
+options = options + r'      -h, --help                              Show help information' + '\n'
+options = options + r'      -i, --input   <input file>              Input file' + '\n'
+options = options + r'      -o, --output  <output file>             Output file' + '\n'
+options = options + r'      -r, --redundancy_rate  <number>         Redundancy rate, default 0 ' + '\n'
+options = options + r'      -n, --droplet_num  <number>             Number of droplets, default 210,000 ' + '\n'
+options = options + r'      -c, --chunk_size  <size>                Chunk size, default 35 (bytes)' + '\n'
+options = options + r'      -s, --seed    <seed>                    Fountain random seed, default 1' + '\n'
+options = options + r'      -l, --initial_index  <initial index>    Initial index, default 1' + '\n'
+options = options + r'      --index_bytes  <number>                 Length of index and anchor codes, default 4 (bytes)' + '\n'
+options = options + r'      --ec_bytes  <number>                    Length of ec codes, default 2 (bytes)' + '\n'
+options = options + r'      --test_num  <number>                    Number of test runs, default 0' + '\n'
 
 
-for i in range(0, 4):
-    file2 = open(work_dir + r'babel_v2.DNAs.tab.rich.' + str(i), 'tw')
-    file2.write('Head Index\tData\tDNA\tDNA-Primers\tDegree\tChunk Nums\tTail Index\n')
-    for dps in droplet_four_pics[i]:
-        file2.write(str(dps.head_index))
-        file2.write('\t')
-        file2.write(str(dps.data))
-        file2.write('\t')
-        file2.write(dps.to_DNA_CRC_sIndex())
-        file2.write('\t')
-        file2.write(p1)
-        file2.write(dps.to_DNA_CRC_sIndex())
-        file2.write(p2)
-        file2.write('\t')
-        file2.write(str(dps.degree))
-        file2.write('\t')
-        file2.write(str(dps.get_chunk_nums()))
-        file2.write('\t')
-        file2.write(str(dps.tail_index))
-        file2.write('\n')
-    file2.close()
+for opt_name,opt_value in opts:
+    if opt_name in ('-h','--help'):
+        print(usage)
+        print(options)
+        sys.exit()
+    if opt_name in ('-i','--input'):
+        input_file = opt_value
+        if not output_file:  # Set default output name if not already specified
+            output_file = input_file + ".fasta"
+    if opt_name in ('-o','--output'):
+        output_file = opt_value
+    if opt_name in ('-c','--chunk_size'):
+        chunk_size = int(opt_value)
+    if opt_name in ('-n', '--droplet_num'):
+        droplet_num = int(opt_value)
+
+    if opt_name in ('-r', '--redundancy_rate'):
+        redundancy_rate = float(opt_value)
+
+    if opt_name in ('-s', '--seed'):
+        fountain_seed = int(opt_value)
+
+    if opt_name in ('-l', '--low_index'):
+        start_index = int(opt_value)
+    if opt_name in ('--index_bytes', '--notmatch'):
+        index_bytes = int(opt_value)
+        anchor_bytes = index_bytes
+    if opt_name in ('--ec_bytes', '--notmatch'):
+        ec_bytes = int(opt_value)
+
+    if opt_name in ('--test_num', '--notmatch'):
+        test_num = int(opt_value)
+
+start = time.perf_counter()
+
+file1 = open(work_dir + input_file, 'rb')
+filebytes1 = file1.read()
+file1.close()
 
 
+fdna1 = DNAFountain(filebytes1, chunk_size, start_index, fountain_seed, index_bytes*4, anchor_bytes*4, ec_bytes*4)
+fdna1.degree_table_folds = 5
+fdna1.gen_degrees()
+
+print('Chunk number: ', end='')
+print(fdna1.num_of_chunks)
+
+if redundancy_rate > 0:
+    droplet_num = int(fdna1.num_of_chunks * (1 + redundancy_rate)) + 1
+
+print('Generating droplets' + str(droplet_num) + '............')
+total_size = droplet_num #int(fdna1.num_of_chunks * 1.15)
+core_size = int(total_size*0.95)
+
+print(droplet_num)
+print(core_size)
+droplet_all = get_droplets(total_size, fdna1)
+
+if test_num > 0:
+    print('\nGenerating DNA data droplets and run strand dropout test ......')
+    failed_gts = []
 
 
-os.system('mv input_files/babel_v2.DNAs.tab.sim.0 input_files/tju.jpg.strands')
-os.system('mv input_files/babel_v2.DNAs.tab.rich.0 input_files/tju.jpg.details')
+    suc_num_default = 0
+    for i in range(0, test_num):
+        droplet_sample = []
+        # droplet_sample[i] = random.sample(range(0, total_size), core_size)
+        random.seed(i + 1)
+        for j in random.sample(range(0, total_size-1), core_size):
+            droplet_sample.append(copy.deepcopy(droplet_all[j]))
 
-os.system('mv input_files/babel_v2.DNAs.tab.sim.1 input_files/BCA.jpg.strands')
-os.system('mv input_files/babel_v2.DNAs.tab.rich.1 input_files/BCA.jpg.details')
+        if test_droplets(droplet_sample, fdna1):
+            suc_num_default = suc_num_default + 1
 
-os.system('mv input_files/babel_v2.DNAs.tab.sim.2 input_files/HECHAIN.jpg.strands')
-os.system('mv input_files/babel_v2.DNAs.tab.rich.2 input_files/HECHAIN.jpg.details')
-
-os.system('mv input_files/babel_v2.DNAs.tab.sim.3 input_files/ZONFF.jpg.strands')
-os.system('mv input_files/babel_v2.DNAs.tab.rich.3 input_files/ZONFF.jpg.details')
-
-
-
-
+    print("With a dropout rate of 6%, " + str(suc_num_default) + " succeed in a total of " + str(test_num) + " runs.")
+    print('\nGenerating DNA data droplets and run strand dropout test ......')
 
 
+write_log_file(output_file, droplet_all, double_index)
+write_fasta_file(output_file, droplet_all, p1, p2, double_index)
 
 
+print('The DNA sequences in fasta format: ', end='')
+print(output_file)
 
+print('Details about the encoding: ', end='')
+print(output_file + '.log')
 
-
-
-
+end = time.perf_counter() - start
+print('Encoding time: ', end ='')
+print(end)

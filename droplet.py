@@ -6,6 +6,8 @@ import random
 class Droplet:
     def __init__(self, data=b'', symbol_index=-1, num_of_chunks=100, seed=1):
         self.data = data
+        if self.data is None:
+            self.data = b''
         self.symbol_index = symbol_index
         self.num_of_chunks = num_of_chunks
         self.degree = 0

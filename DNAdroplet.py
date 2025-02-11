@@ -10,6 +10,10 @@ import random
 class DNADroplet(Droplet):
     def __init__(self, data=b'', index=-1, num_of_chunks=100, head_index_len=16, tail_index_len=16, seed=1, crc_len=8):
         super(DNADroplet, self).__init__(data, index, num_of_chunks)
+        # Ensure self.data is always a bytes object.
+        if self.data is None:
+            self.data = b''
+            
         self.seed = seed
         self.head_index_len = head_index_len
         self.tail_index_len = tail_index_len
@@ -17,6 +21,9 @@ class DNADroplet(Droplet):
         self.crc_len = crc_len
 
         self.head_index = index
+
+        # print("DNAdroplet index: " + str(self.head_index))
+
         self.tail_index = self.get_tail_index()
         self.anchor = False
 
@@ -63,18 +70,15 @@ class DNADroplet(Droplet):
         return self.tail_index
 
     def _crc(self):
-        #databytes = b''
+        # Calculate the CRC for the droplet: use encrypted data if self.des is True.
         if self.des:
-            # print("DNAdroplet sec_key: " + self.sec_key)
+            # Use encrypted data.
             self.des_data = des_en(self.data, self.sec_key)
             data_bytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big',
-                                                 signed=False) + self.des_data
+                                                  signed=False) + self.des_data
         else:
-            data_bytes = self.head_index.to_bytes(int(self.head_index_len/4), 'big',
-                                            signed=False) + self.data
-
-        data_bytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big',
-                                               signed=False) + self.data
+            data_bytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big',
+                                                  signed=False) + self.data
         self.crc = crc16pure.crc16xmodem(data_bytes)
 
 

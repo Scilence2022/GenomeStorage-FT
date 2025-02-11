@@ -11,16 +11,18 @@ class DNAFountain(Fountain):
 		self.droplet_crc_length = droplet_crc_length
 
 		self.des = False
-		self.sec_key = "hellhell"
+		self.sec_key = ""
 		super(DNAFountain, self).__init__(data, chunk_size, index, seed)
 
 
 	def DNAdroplet(self):
 		self.updateIndex()
+		# print("DNAFountain index: " + str(self.index))
 		aDroplet = DNADroplet(b'', self.index, self.num_of_chunks, self.droplet_head_length, self.droplet_tail_length, self.seed, self.droplet_crc_length)
-		aDroplet.sec_key = self.sec_key
+		
 		if self.des:
 			aDroplet.des = True
+			aDroplet.sec_key = self.sec_key
 
 			# print("DNAFountain sec_key: " + self.sec_key)
 
@@ -34,8 +36,11 @@ class DNAFountain(Fountain):
 			else:
 				data = xor(data, self.chunk(num))
 		aDroplet.data = data
+		# print(aDroplet.)
+	
+
 		if self.des:
-			aDroplet.encry_data()
+				aDroplet.encry_data()
 		return aDroplet
 
 	def fix_bytes(self):

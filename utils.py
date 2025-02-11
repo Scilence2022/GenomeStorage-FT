@@ -15,7 +15,7 @@ def oxor(str1, str2):
 	length = max(len(str1), len(str2))
 	return ''.join(chr(ord(charN(str1, i)) ^ ord(charN(str2, i))) for i in range(length))
 
-def	xor(str1, str2):
+def xor(str1, str2):
 	length = max(len(str1), len(str2))
 	if len(str1) > len(str2):
 		str2 = str2 + bytes(len(str1) - len(str2))
@@ -34,14 +34,19 @@ def randChunkNums(degree, num_chunks):
 	return random.sample(range(num_chunks), size)
 
 
-def get_degrees(N, k, symbol_index=-1, delta=0.1, c_value=0.2, distribution_name='robust'):
+def get_degrees(N, k, symbol_index=-1, robust_failure_probability=0.1, c_value=0.2, distribution_name='robust'):
 	#print(distribution_name)
 	if distribution_name == "ideal":
 		probabilities = ideal_distribution(N)
 	elif distribution_name == "robust":
-		probabilities = robust_distribution(N, c_value, delta)
+		probabilities = robust_distribution(N, c_value, robust_failure_probability)
 	else:
 		probabilities = None
+
+
+	print("get_degrees() probabilities: " )
+	print(probabilities)
+	print(len(probabilities))
 
 	population = list(range(0, N))
 	if symbol_index > 0:
@@ -60,86 +65,95 @@ def generate_chunk_nums(blocks_quantity, degree, symbol_index):
 
 
 
-def ideal_distribution(K, epsilon=1e-6):
-    """Returns the ideal distribution used in Luby Fountain Codes."""
-    probabilities = np.array([1 / (2 ** k) for k in range(K)])  # Geometric-like distribution
-    probabilities_sum = np.sum(probabilities)
-    probabilities /= probabilities_sum  # Normalize to make it sum to 1
-    assert np.abs(np.sum(probabilities) - 1) < epsilon, "Ideal distribution should be standardized"
-    return probabilities
+# def ideal_distribution(K, epsilon=1e-6):
+#     """Returns the ideal distribution used in Luby Fountain Codes."""
+#     probabilities = np.array([1 / (2 ** k) for k in range(K)])  # Geometric-like distribution
+#     probabilities_sum = np.sum(probabilities)
+#     probabilities /= probabilities_sum  # Normalize to make it sum to 1
+#     assert np.abs(np.sum(probabilities) - 1) < epsilon, "Ideal distribution should be standardized"
+#     return probabilities
 
-def robust_distribution(K, c_value=0.5, robust_failure_probability=0.1, epsilon=1e-6):
-    """
-    Returns a robust distribution used in Luby Fountain Codes, incorporating a robustness factor and spike.
+# def robust_distribution(K, c_value=0.5, robust_failure_probability=0.01, epsilon=1e-6):
+#     """
+#     Returns a robust distribution used in Luby Fountain Codes, incorporating a robustness factor and spike.
 
-    Parameters:
-    - K: The total number of symbols
-    - c_value: A scaling constant affecting the robustness
-    - robust_failure_probability: Probability of failure used in robustness calculation
-    - epsilon: Precision for checking sum normalization
-    """
-    # Step 1: Calculate scaling factor (S)
-    S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
+#     Parameters:
+#     - K: The total number of symbols
+#     - c_value: A scaling constant affecting the robustness
+#     - robust_failure_probability: Probability of failure used in robustness calculation
+#     - epsilon: Precision for checking sum normalization
+#     """
+#     # Step 1: Calculate scaling factor (S)
+#     S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
 
-    # Step 2: Calculate the number of positions for the "spike" (M)
-    M = round(K / S)
+#     # Step 2: Calculate the number of positions for the "spike" (M)
+#     M = round(K / S)
+#     if M < 2:
+#         M = 2  # Ensure M is at least 2 to prevent range issues
 
-    # Step 3: Generate extra probabilities
-    extra_proba = [0] + [1 / (i * M) for i in range(1, M-1)]  # Small values before the spike
+#     # Step 3: Generate extra probabilities
+#     extra_proba = [0] + [1 / (i * M) for i in range(1, M - 1)]  # Small values before the spike
+				
+#     # Step 4: Add a spike at position M
+#     spike_value = S * math.log(S / robust_failure_probability) / K
+#     extra_proba.append(spike_value)
 
-    # Step 4: Add a spike at position M
-    spike_value = S * math.log(S / robust_failure_probability) / K
-    extra_proba.append(spike_value)
+#     # Step 5: Zero out the remaining values after the spike
+#     extra_proba += [0 for _ in range(M, K)]
 
-    # Step 5: Zero out the remaining values after the spike
-    extra_proba += [0 for _ in range(M, K)]
+#     # Ensure extra_proba has exactly K elements
+#     if len(extra_proba) < K:
+#         extra_proba += [0] * (K - len(extra_proba))
+#     else:
+#         extra_proba = extra_proba[:K]
 
-    # Step 6: Combine with the ideal distribution
-    probabilities = np.add(extra_proba, ideal_distribution(K, epsilon))
+#     # Step 6: Combine with the ideal distribution
+#     ideal_probs = ideal_distribution(K, epsilon)
+#     probabilities = np.add(extra_proba, ideal_probs)
 
-    # Step 7: Normalize the distribution to sum to 1
-    probabilities_sum = np.sum(probabilities)
-    probabilities /= probabilities_sum  # Normalize
+#     # Step 7: Normalize the distribution to sum to 1
+#     probabilities_sum = np.sum(probabilities)
+#     probabilities /= probabilities_sum  # Normalize
 
-    # Assert that the probabilities sum to 1 (within epsilon tolerance)
-    assert np.abs(probabilities_sum - 1) < epsilon, "Robust distribution should be standardized"
+#     # Assert that the normalized probabilities sum to 1 (within epsilon tolerance)
+#     assert np.abs(np.sum(probabilities) - 1) < epsilon, "Robust distribution should be standardized"
 
-    return probabilities
+#     return probabilities
 
 
 
-# def ideal_distribution(K):
+def ideal_distribution(K):
 
-# 	probabilities = [0, 10 / K]
-# 	probabilities += [1 / (k * (k - 1)) for k in range(2, K)]
-# 	probabilities_sum = np.sum(probabilities)
-# 	probabilities /= probabilities_sum
+	probabilities = [0, 10 / K]
+	probabilities += [1 / (k * (k - 1)) for k in range(2, K)]
+	probabilities_sum = np.sum(probabilities)
+	probabilities /= probabilities_sum
 
-# 	# assert probabilities_sum >= 1 - epsilon and probabilities_sum <= 1 + epsilon, "The ideal distribution should be standardized"
-# 	return probabilities
+	# assert probabilities_sum >= 1 - epsilon and probabilities_sum <= 1 + epsilon, "The ideal distribution should be standardized"
+	return probabilities
 
-# def robust_distribution(K, c_value = 0.5, robust_failure_probability=0.1):
+def robust_distribution(K, c_value = 0.5, robust_failure_probability=0.1):
 
-# 	# print('c value=', end='\t')
-# 	# print(c_value, end='\t')
-# 	# print('epsilon', end = '\t')
-# 	# print(robust_failure_probability)
+	# print('c value=', end='\t')
+	# print(c_value, end='\t')
+	# print('epsilon', end = '\t')
+	# print(robust_failure_probability)
 
-# 	S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
-# 	#print(S)
-# 	# M = round(K/S)
-# 	M = round(K / S)
-# 	#print(M)
-# 	extra_proba = [0] + [1/(i * M) for i in range(1, M-1)]
-# 	extra_proba += [S * math.log(S / robust_failure_probability) / K]  # Spike at M
-# 	extra_proba += [0 for k in range(M, K)]
+	S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
+	#print(S)
+	# M = round(K/S)
+	M = round(K / S)
+	#print(M)
+	extra_proba = [0] + [1/(i * M) for i in range(1, M-1)]
+	extra_proba += [S * math.log(S / robust_failure_probability) / K]  # Spike at M
+	extra_proba += [0 for k in range(M, K)]
 
-# 	probabilities = np.add(extra_proba, ideal_distribution(K))
-# 	#print(np.sum(probabilities))
-# 	probabilities /= np.sum(probabilities)
-# 	#probabilities_sum = np.sum(probabilities)
-# 	#assert probabilities_sum >= 1 - epsilonc and probabilities_sum <= 1 + epsilonc, "The robust distribution should be standardized"
-# 	return probabilities
+	probabilities = np.add(extra_proba, ideal_distribution(K))
+	#print(np.sum(probabilities))
+	probabilities /= np.sum(probabilities)
+	#probabilities_sum = np.sum(probabilities)
+	#assert probabilities_sum >= 1 - epsilonc and probabilities_sum <= 1 + epsilonc, "The robust distribution should be standardized"
+	return probabilities
 
 def bytesToDNA(manyBytes):
 	dnastr = ''
@@ -151,6 +165,7 @@ def DNAToBytes(dnaStr):
 	i = 0
 	nBytes=b''
 	while i < len(dnaStr):
+
 		nBytes = nBytes + simDNAToByte(dnaStr[i:i+4])
 		i = i + 4
 	return nBytes
@@ -399,4 +414,55 @@ def des_de(s, sec_key):
 	iv = sec_key
 	k = des(sec_key, CBC, iv, pad=None, padmode=PAD_PKCS5)
 	return k.decrypt(s)
+
+def write_log_file(file_path, droplet_all, double_index=False):
+    """
+    Write detailed droplet information to a log file
+    
+    Args:
+        file_path: Path to the log file
+        droplet_all: List of droplets to write
+        double_index: Boolean flag for index format
+    """
+    with open(file_path + '.log', 'tw') as file2:
+        for dps in droplet_all:
+            file2.write(str(dps.head_index))
+            file2.write('\t')
+            file2.write(str(dps.data))
+            file2.write('\t')
+            if double_index:
+                file2.write(dps.to_DNA_CRC())
+            else:
+                file2.write(dps.to_DNA_CRC_sIndex())
+            file2.write('\t')
+            file2.write(str(dps.degree))
+            file2.write('\t')
+            file2.write(str(dps.get_chunk_nums()))
+            file2.write('\t')
+            file2.write(str(dps.tail_index))
+            file2.write('\n')
+
+def write_fasta_file(file_path, droplet_all, p1, p2, double_index=False):
+    """
+    Write droplets to a FASTA format file
+    
+    Args:
+        file_path: Path to the fasta file
+        droplet_all: List of droplets to write
+        p1: First primer sequence
+        p2: Second primer sequence
+        double_index: Boolean flag for index format
+    """
+    with open(file_path, 'tw') as file2:
+        for dps in droplet_all:
+            file2.write(">")
+            file2.write(str(dps.head_index))
+            file2.write("\n")
+            file2.write(p1)
+            if double_index:
+                file2.write(dps.to_DNA_CRC())
+            else:
+                file2.write(dps.to_DNA_CRC_sIndex())
+            file2.write(p2)
+            file2.write('\n')
 

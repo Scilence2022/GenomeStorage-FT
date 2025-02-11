@@ -9,6 +9,8 @@ class Fountain:
         self.seed = seed
         self.index = index
         self.data = data
+        if self.data is None:
+            self.data = b''
         self.chunk_size = chunk_size
         self.num_of_chunks = int(ceil(len(data) / float(chunk_size)))
         #self.ROBUST_FAILURE_PROBABILITY = 0.1   #Large-Scale simulations
@@ -18,7 +20,7 @@ class Fountain:
 
         self.degree_table_folds = 3
         self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
-
+        print("Fountain degrees: " + str(self.degrees))
         self.VERBOSE = False
 
        # self.random_degrees = get_degrees_from("robust", blocks_n, k=drops_quantity)
@@ -52,5 +54,5 @@ class Fountain:
         #random.seed(self.seed)
 
     def gen_degrees(self):
-        self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
+        self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
  #   def openfile(self, str):

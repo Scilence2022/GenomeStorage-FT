@@ -13,7 +13,7 @@ import getopt
 
 
 chunk_size = 35
-fountain_seed = 1
+fountain_seed = 2222
 droplet_num = 2000
 double_index = False
 start_index = 1

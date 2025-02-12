@@ -1,6 +1,6 @@
 from DNAdroplet import DNADroplet
 from fountain import Fountain
-from utils import xor, randChunkNums
+from utils import inverse_hash_32, reversible_hash_32, xor, randChunkNums, bytesToDNA, DNAToBytes
 import random
 
 
@@ -12,6 +12,10 @@ class DNAFountain(Fountain):
 
 		self.des = False
 		self.sec_key = ""
+		self.primer1 = 'CCTGCAGAGTAGCATGTC'  # 5'-->3'
+		self.primer2 = 'CTGACACTGATGCATCCG'  # complement seq of P2
+		self.note = "FT"
+		self.note_len = 2
 		super(DNAFountain, self).__init__(data, chunk_size, index, seed)
 
 
@@ -48,3 +52,26 @@ class DNAFountain(Fountain):
 		l_bytes = blen % self.chunk_size
 		if l_bytes > 0:
 			self.data = self.data + bytes(self.chunk_size - l_bytes)
+
+	def pack_metadata(self) -> bytes:
+		"""Pack number_of_chunks into bytes with reversible hash"""
+		# Convert number_of_chunks to 4 bytes (32-bit integer)
+		hashed_chunks = reversible_hash_32(self.num_of_chunks)
+		return hashed_chunks.to_bytes(4, byteorder='big')
+
+	def unpack_metadata(self, metadata: bytes) -> None:
+		"""Unpack bytes to restore number_of_chunks using inverse hash"""
+		# Get hashed value from 4 bytes
+		hashed_value = int.from_bytes(metadata[0:4], byteorder='big')
+		# Recover original number using inverse hash
+		self.num_of_chunks = inverse_hash_32(hashed_value)
+
+	def primers(self) -> bytes:
+		"""Return the primers as bytes"""
+		self.update_primers()
+		return [self.primer1, self.primer2]
+	
+	def update_primers(self) -> None:
+		"""Set the primers"""
+		self.primer1 = bytesToDNA(self.pack_metadata()) 
+		self.primer2 = bytesToDNA(self.pack_metadata()) 

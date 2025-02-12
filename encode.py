@@ -25,6 +25,7 @@ anchor_bytes = 4
 ec_bytes = 2
 redundancy_rate = 0
 test_num = 0
+test_dropout_rate = 0.05
 
 
 p1 = 'CCTGCAGAGTAGCATGTC'  # 5'-->3'
@@ -32,7 +33,7 @@ p2 = 'CTGACACTGATGCATCCG'  # complement seq of P2
 
 
 opts,args = getopt.getopt(sys.argv[1:],'-h-i:-o:-c:-n:-s:-r:-d-l:',
-                          ['help','input=','output=',  'chunk_size=', 'redundancy_rate=', 'droplet_num=', 'seed=', 'initial_index=', 'index_bytes=', 'ec_bytes=', 'test_num='])
+                          ['help','input=','output=',  'chunk_size=', 'redundancy_rate=', 'droplet_num=', 'seed=', 'initial_index=', 'index_bytes=', 'ec_bytes=', 'test_num=', 'test_dropout_rate='])
 
 usage = 'Usage:\n' + r'      python encode.py -i input_file -n number_of_droplets -o output.fasta [Options]'
 options = 'Options:\n'
@@ -47,6 +48,7 @@ options = options + r'      -l, --initial_index  <initial index>    Initial inde
 options = options + r'      --index_bytes  <number>                 Length of index and anchor codes, default 4 (bytes)' + '\n'
 options = options + r'      --ec_bytes  <number>                    Length of ec codes, default 2 (bytes)' + '\n'
 options = options + r'      --test_num  <number>                    Number of test runs, default 0' + '\n'
+options = options + r'      --test_dropout_rate  <rate>             Test dropout rate, default 0.05' + '\n'
 
 
 for opt_name,opt_value in opts:
@@ -81,6 +83,8 @@ for opt_name,opt_value in opts:
 
     if opt_name in ('--test_num', '--notmatch'):
         test_num = int(opt_value)
+    if opt_name in ('--test_dropout_rate', '--notmatch'):
+        test_dropout_rate = float(opt_value)
 
 start = time.perf_counter()
 
@@ -96,12 +100,18 @@ fdna1.gen_degrees()
 print('Chunk number: ', end='')
 print(fdna1.num_of_chunks)
 
+
+print(fdna1.primers())
+print(fdna1.pack_metadata())
+print(fdna1.note)
+
+
 if redundancy_rate > 0:
     droplet_num = int(fdna1.num_of_chunks * (1 + redundancy_rate)) + 1
 
 print('Generating droplets' + str(droplet_num) + '............')
 total_size = droplet_num #int(fdna1.num_of_chunks * 1.15)
-core_size = int(total_size*0.95)
+core_size = int(total_size*(1-test_dropout_rate))
 
 print(droplet_num)
 print(core_size)
@@ -123,7 +133,7 @@ if test_num > 0:
         if test_droplets(droplet_sample, fdna1):
             suc_num_default = suc_num_default + 1
 
-    print("With a dropout rate of 6%, " + str(suc_num_default) + " succeed in a total of " + str(test_num) + " runs.")
+    print("With a dropout rate of " +str(test_dropout_rate) + ", " + str(suc_num_default) + " succeed in a total of " + str(test_num) + " runs.")
     print('\nGenerating DNA data droplets and run strand dropout test ......')
 
 

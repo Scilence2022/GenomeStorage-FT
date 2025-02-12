@@ -65,95 +65,43 @@ def generate_chunk_nums(blocks_quantity, degree, symbol_index):
 
 
 
-# def ideal_distribution(K, epsilon=1e-6):
-#     """Returns the ideal distribution used in Luby Fountain Codes."""
-#     probabilities = np.array([1 / (2 ** k) for k in range(K)])  # Geometric-like distribution
-#     probabilities_sum = np.sum(probabilities)
-#     probabilities /= probabilities_sum  # Normalize to make it sum to 1
-#     assert np.abs(np.sum(probabilities) - 1) < epsilon, "Ideal distribution should be standardized"
-#     return probabilities
+def ideal_distribution(K, epsilon=1e-6):
 
-# def robust_distribution(K, c_value=0.5, robust_failure_probability=0.01, epsilon=1e-6):
-#     """
-#     Returns a robust distribution used in Luby Fountain Codes, incorporating a robustness factor and spike.
-
-#     Parameters:
-#     - K: The total number of symbols
-#     - c_value: A scaling constant affecting the robustness
-#     - robust_failure_probability: Probability of failure used in robustness calculation
-#     - epsilon: Precision for checking sum normalization
-#     """
-#     # Step 1: Calculate scaling factor (S)
-#     S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
-
-#     # Step 2: Calculate the number of positions for the "spike" (M)
-#     M = round(K / S)
-#     if M < 2:
-#         M = 2  # Ensure M is at least 2 to prevent range issues
-
-#     # Step 3: Generate extra probabilities
-#     extra_proba = [0] + [1 / (i * M) for i in range(1, M - 1)]  # Small values before the spike
-				
-#     # Step 4: Add a spike at position M
-#     spike_value = S * math.log(S / robust_failure_probability) / K
-#     extra_proba.append(spike_value)
-
-#     # Step 5: Zero out the remaining values after the spike
-#     extra_proba += [0 for _ in range(M, K)]
-
-#     # Ensure extra_proba has exactly K elements
-#     if len(extra_proba) < K:
-#         extra_proba += [0] * (K - len(extra_proba))
-#     else:
-#         extra_proba = extra_proba[:K]
-
-#     # Step 6: Combine with the ideal distribution
-#     ideal_probs = ideal_distribution(K, epsilon)
-#     probabilities = np.add(extra_proba, ideal_probs)
-
-#     # Step 7: Normalize the distribution to sum to 1
-#     probabilities_sum = np.sum(probabilities)
-#     probabilities /= probabilities_sum  # Normalize
-
-#     # Assert that the normalized probabilities sum to 1 (within epsilon tolerance)
-#     assert np.abs(np.sum(probabilities) - 1) < epsilon, "Robust distribution should be standardized"
-
-#     return probabilities
-
-
-
-def ideal_distribution(K):
-
-	probabilities = [0, 10 / K]
+	probabilities = [0, 10/ K]
 	probabilities += [1 / (k * (k - 1)) for k in range(2, K)]
 	probabilities_sum = np.sum(probabilities)
 	probabilities /= probabilities_sum
 
-	# assert probabilities_sum >= 1 - epsilon and probabilities_sum <= 1 + epsilon, "The ideal distribution should be standardized"
+	probabilities_sum = np.sum(probabilities)
+	assert probabilities_sum >= 1 - epsilon and probabilities_sum <= 1 + epsilon, "The ideal distribution should be standardized"
 	return probabilities
 
-def robust_distribution(K, c_value = 0.5, robust_failure_probability=0.1):
+def robust_distribution(K, c_value = 0.5, robust_failure_probability=0.1, epsilon=1e-6):
+    """
+    Returns a robust distribution used in Luby Fountain Codes, incorporating a robustness factor and spike.
 
-	# print('c value=', end='\t')
-	# print(c_value, end='\t')
-	# print('epsilon', end = '\t')
-	# print(robust_failure_probability)
+    Parameters:
+    - K: The total number of symbols
+    - c_value: A scaling constant affecting the robustness
+    - robust_failure_probability: Probability of failure used in robustness calculation
+    - epsilon: Precision for checking sum normalization
+    """
+    S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
+    #print(S)
+    # M = round(K/S)
+    M = round(K / S)
+    #print(M)
+    extra_proba = [0] + [1/(i * M) for i in range(1, M-1)]
+    extra_proba += [S * math.log(S / robust_failure_probability) / K]  # Spike at M
+    extra_proba += [0 for k in range(M, K)]
 
-	S = c_value * math.log(K / robust_failure_probability) * math.sqrt(K)
-	#print(S)
-	# M = round(K/S)
-	M = round(K / S)
-	#print(M)
-	extra_proba = [0] + [1/(i * M) for i in range(1, M-1)]
-	extra_proba += [S * math.log(S / robust_failure_probability) / K]  # Spike at M
-	extra_proba += [0 for k in range(M, K)]
+    probabilities = np.add(extra_proba, ideal_distribution(K))
+    #print(np.sum(probabilities))
+    probabilities /= np.sum(probabilities)
+    probabilities_sum = np.sum(probabilities)
+    assert probabilities_sum >= 1 - epsilon and probabilities_sum <= 1 + epsilon, "The robust distribution should be standardized"
+    return probabilities
 
-	probabilities = np.add(extra_proba, ideal_distribution(K))
-	#print(np.sum(probabilities))
-	probabilities /= np.sum(probabilities)
-	#probabilities_sum = np.sum(probabilities)
-	#assert probabilities_sum >= 1 - epsilonc and probabilities_sum <= 1 + epsilonc, "The robust distribution should be standardized"
-	return probabilities
 
 def bytesToDNA(manyBytes):
 	dnastr = ''
@@ -466,3 +414,47 @@ def write_fasta_file(file_path, droplet_all, p1, p2, double_index=False):
             file2.write(p2)
             file2.write('\n')
 
+def reversible_hash_32(x: int) -> int:
+    """
+    A reversible 32-bit hash function using xor and bit rotation
+    
+    Args:
+        x: 32-bit integer input
+    Returns:
+        32-bit hashed integer
+    """
+    x = ((x >> 16) ^ x) * 0x45d9f3b
+    x = ((x >> 16) ^ x) * 0x45d9f3b
+    x = (x >> 16) ^ x
+    return x & 0xFFFFFFFF
+
+def inverse_hash_32(y: int) -> int:
+    """
+    Inverse function of reversible_hash_32
+    
+    Args:
+        y: 32-bit hashed integer
+    Returns:
+        Original 32-bit integer
+    """
+    y = y & 0xFFFFFFFF
+    y = ((y >> 16) ^ y) * 0x119de1f3
+    y = ((y >> 16) ^ y) * 0x119de1f3
+    y = (y >> 16) ^ y
+    return y & 0xFFFFFFFF
+
+
+def jenkins_hash(anum, bit_length=32):
+    data = int.to_bytes(anum, int(bit_length / 8), 'big', signed=False)
+    if bit_length <= 0:
+        raise ValueError("Invalid bit length. Must be greater than 0")
+    hash_value = 0
+    for byte in data:
+        hash_value += byte
+        hash_value += (hash_value << 10)
+        hash_value ^= (hash_value >> 6)
+        hash_value += (hash_value << 3)
+        hash_value ^= (hash_value >> 11)
+        hash_value += (hash_value << 15)
+    hash_mask = (1 << bit_length) - 1
+    return hash_value & hash_mask

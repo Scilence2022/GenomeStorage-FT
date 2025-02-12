@@ -22,6 +22,7 @@ class Fountain:
         self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
         print("Fountain degrees: " + str(self.degrees))
         self.VERBOSE = False
+        
 
        # self.random_degrees = get_degrees_from("robust", blocks_n, k=drops_quantity)
         #random.seed(seed)
@@ -56,3 +57,5 @@ class Fountain:
     def gen_degrees(self):
         self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
  #   def openfile(self, str):
+
+

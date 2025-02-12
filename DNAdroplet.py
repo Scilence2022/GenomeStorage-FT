@@ -21,7 +21,7 @@ class DNADroplet(Droplet):
         self.crc_len = crc_len
 
         self.head_index = index
-
+        #self.head_hash = jenkins_hash(self.head_index)
         # print("DNAdroplet index: " + str(self.head_index))
 
         self.tail_index = self.get_tail_index()
@@ -45,6 +45,7 @@ class DNADroplet(Droplet):
     #2020.02.19 Deal with the index-->chunks problem
     def set_head_index(self, index_num):
         self.head_index = index_num
+        #self.head_hash = jenkins_hash(self.head_index)
         self.symbol_index = index_num
         self.update()
 
@@ -74,10 +75,10 @@ class DNADroplet(Droplet):
         if self.des:
             # Use encrypted data.
             self.des_data = des_en(self.data, self.sec_key)
-            data_bytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big',
+            data_bytes = jenkins_hash(self.head_index).to_bytes(int(self.head_index_len / 4), 'big',
                                                   signed=False) + self.des_data
         else:
-            data_bytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big',
+            data_bytes = jenkins_hash(self.head_index).to_bytes(int(self.head_index_len / 4), 'big',
                                                   signed=False) + self.data
         self.crc = crc16pure.crc16xmodem(data_bytes)
 
@@ -113,11 +114,11 @@ class DNADroplet(Droplet):
     def to_DNA_CRC_sIndex(self):
         self.get_crc()
         if self.des:
-            allbytes = self.head_index.to_bytes(int(self.head_index_len / 4), 'big', signed=False) \
+            allbytes = jenkins_hash(self.head_index).to_bytes(int(self.head_index_len / 4), 'big', signed=False) \
                        + self.des_data \
                        + self.crc.to_bytes(int(self.crc_len / 4), 'big', signed=False)
         else:
-            allbytes = self.head_index.to_bytes(int(self.head_index_len/4), 'big', signed=False)\
+            allbytes = jenkins_hash(self.head_index).to_bytes(int(self.head_index_len/4), 'big', signed=False)\
                    + self.data \
                    + self.crc.to_bytes(int(self.crc_len/4), 'big', signed=False)
         self.allbytes = allbytes

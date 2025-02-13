@@ -416,32 +416,37 @@ def write_fasta_file(file_path, droplet_all, p1, p2, double_index=False):
 
 def reversible_hash_32(x: int) -> int:
     """
-    A reversible 32-bit hash function using xor and bit rotation
-    
-    Args:
-        x: 32-bit integer input
-    Returns:
-        32-bit hashed integer
+    Reversible 32-bit hash using Feistel network.
+    Implements a true bijective mapping.
     """
-    x = ((x >> 16) ^ x) * 0x45d9f3b
-    x = ((x >> 16) ^ x) * 0x45d9f3b
-    x = (x >> 16) ^ x
-    return x & 0xFFFFFFFF
+    x = x & 0xFFFFFFFF
+    l = (x >> 16) & 0xFFFF
+    r = x & 0xFFFF
+    
+    # Three Feistel rounds
+    for _ in range(3):
+        l_next = r
+        r = l ^ ((((r << 5) | (r >> 11)) + 0x9E37) & 0xFFFF)  # Nonlinear mixing
+        l = l_next
+    
+    return (l << 16) | r
 
 def inverse_hash_32(y: int) -> int:
     """
-    Inverse function of reversible_hash_32
-    
-    Args:
-        y: 32-bit hashed integer
-    Returns:
-        Original 32-bit integer
+    Inverse of the reversible_hash_32 function.
+    Reverses the Feistel network operations.
     """
     y = y & 0xFFFFFFFF
-    y = ((y >> 16) ^ y) * 0x119de1f3
-    y = ((y >> 16) ^ y) * 0x119de1f3
-    y = (y >> 16) ^ y
-    return y & 0xFFFFFFFF
+    l = (y >> 16) & 0xFFFF
+    r = y & 0xFFFF
+    
+    # Reverse three Feistel rounds
+    for _ in range(3):
+        r_prev = l
+        l = r ^ ((((l << 5) | (l >> 11)) + 0x9E37) & 0xFFFF)  # Inverse mixing
+        r = r_prev
+    
+    return (l << 16) | r
 
 
 def jenkins_hash(anum, bit_length=32):

@@ -20,7 +20,7 @@ class Fountain:
 
         self.degree_table_folds = 3
         self.degrees = get_degrees(self.num_of_chunks, int(self.num_of_chunks * self.degree_table_folds), self.seed, self.ROBUST_FAILURE_PROBABILITY, self.c_value, 'robust')
-        print("Fountain degrees: " + str(self.degrees))
+        # print("Fountain degrees: " + str(self.degrees))
         self.VERBOSE = False
         
 

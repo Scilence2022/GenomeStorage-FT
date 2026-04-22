@@ -414,6 +414,43 @@ def write_fasta_file(file_path, droplet_all, p1, p2, double_index=False):
             file2.write(p2)
             file2.write('\n')
 
+
+def write_tab_file(file_path, droplet_all, p1, p2,  se_rev=False, double_index=False,):
+    """
+    Write droplets to a tab-separated file
+    
+    Args:
+        file_path: Path to the tab file
+        droplet_all: List of droplets to write
+        p1: First primer sequence
+        p2: Second primer sequence
+        double_index: Boolean flag for index format
+        se_rev: If True, alternates between forward and reverse complement sequences
+    """
+    with open(file_path + '.tab', 'tw') as file2:
+        # Write header
+        file2.write("head_index\tsequence\n")
+        # Write data
+        for i, dps in enumerate(droplet_all):
+            file2.write(str(dps.head_index))
+            file2.write('\t')
+            
+            # print(i)# Build the complete sequence
+            sequence = p1
+            if double_index:
+                sequence += dps.to_DNA_CRC()
+            else:
+                sequence += dps.to_DNA_CRC_sIndex()
+            sequence += p2
+            
+            # Apply reverse complement to alternating sequences if se_rev is True
+            if se_rev and i % 2 == 1:
+                sequence = DNA_rev_complement(sequence)
+                
+            file2.write(sequence)
+            file2.write('\n')
+
+
 def reversible_hash_32(x: int) -> int:
     """
     Reversible 32-bit hash using Feistel network.
@@ -463,3 +500,4 @@ def jenkins_hash(anum, bit_length=32):
         hash_value += (hash_value << 15)
     hash_mask = (1 << bit_length) - 1
     return hash_value & hash_mask
+

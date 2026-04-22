@@ -33,7 +33,7 @@ p2 = 'CTGACACTGATGCATCCG'  # complement seq of P2
 
 
 opts,args = getopt.getopt(sys.argv[1:],'-h-i:-o:-c:-n:-s:-r:-d-l:',
-                          ['help','input=','output=',  'chunk_size=', 'redundancy_rate=', 'droplet_num=', 'seed=', 'initial_index=', 'index_bytes=', 'ec_bytes=', 'test_num=', 'test_dropout_rate='])
+                          ['help','input=','output=',  'chunk_size=', 'redundancy_rate=', 'droplet_num=', 'seed=', 'initial_index=', 'index_bytes=', 'ec_bytes=', 'test_num=', 'test_dropout_rate=', 'p1=', 'p2='])
 
 usage = 'Usage:\n' + r'      python encode.py -i input_file -n number_of_droplets -o output.fasta [Options]'
 options = 'Options:\n'
@@ -49,6 +49,8 @@ options = options + r'      --index_bytes  <number>                 Length of in
 options = options + r'      --ec_bytes  <number>                    Length of ec codes, default 2 (bytes)' + '\n'
 options = options + r'      --test_num  <number>                    Number of test runs, default 0' + '\n'
 options = options + r'      --test_dropout_rate  <rate>             Test dropout rate, default 0.05' + '\n'
+options = options + r'      --p1  <sequence>                        5\'->3\' primer sequence, default CCTGCAGAGTAGCATGTC' + '\n'
+options = options + r'      --p2  <sequence>                        Complement primer sequence, default CTGACACTGATGCATCCG' + '\n'
 
 
 for opt_name,opt_value in opts:
@@ -85,6 +87,11 @@ for opt_name,opt_value in opts:
         test_num = int(opt_value)
     if opt_name in ('--test_dropout_rate', '--notmatch'):
         test_dropout_rate = float(opt_value)
+
+    if opt_name in ('--p1'):
+        p1 = opt_value
+    if opt_name in ('--p2'):
+        p2 = opt_value
 
 start = time.perf_counter()
 
@@ -139,7 +146,7 @@ if test_num > 0:
 
 write_log_file(output_file, droplet_all, double_index)
 write_fasta_file(output_file, droplet_all, p1, p2, double_index)
-
+write_tab_file(output_file, droplet_all, p1, p2,  True, double_index)
 
 print('The DNA sequences in fasta format: ', end='')
 print(output_file)

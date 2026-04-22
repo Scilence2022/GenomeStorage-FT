@@ -1,0 +1,10 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+input_files
+
+__pycache__
+*.pyc
+.idea
+__pycache__/utils.cpython-311.pyc
+__pycache__/fountain.cpython-311.pyc

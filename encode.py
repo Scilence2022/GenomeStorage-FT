@@ -13,8 +13,8 @@ import getopt
 
 
 chunk_size = 35
-fountain_seed = 2222
-droplet_num = 2000
+fountain_seed = 1
+droplet_num = 3650
 double_index = False
 start_index = 1
 work_dir = r''

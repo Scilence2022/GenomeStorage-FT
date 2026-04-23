@@ -47,8 +47,8 @@ class DeBruijnGraph:
             path_len = len(droplet_template.data) * 4 + droplet_template.crc_len
 
         self.find_paths(index, path_len)
-        # print('find_droplets path len:')
-        # print(path_len)
+        print('find_droplets path len:')
+        print(path_len)
 
 
         all_droplets = []
@@ -67,6 +67,8 @@ class DeBruijnGraph:
 
     def find_paths(self, index, path_len=36*4):
         index_dna = bytesToDNA(index.to_bytes(self.index_byte_num, 'big', signed=False))
+        print(index,end='\t')
+        print(index_dna)
         self.obtained_paths = []
         self.paths = [self.primerF + index_dna]
         self.path_len = len(index_dna) + path_len

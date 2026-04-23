@@ -26,15 +26,16 @@ import time
 # test_dropout_rate = 0.05
 #####
 
+primerF = 'ATAAGAGGACCTGCCG'  # 5'-->3'
+primerE = 'CTCGAGGTCATCGATA'  # complement seq of P2
 
+delta = 0.01
+c_value = 0.01
 
-delta = 0.1
-c_value = 0.2
-
-input_file = r'/data/songlf/0.DNA_Storage/0.GenomePreservation/20260408-NGS-Maqiang/X101SC26038058-Z01/X101SC26038058-Z01-J001/01.RawData/A/A_12.fq'
+input_file = r'/data/songlf/0.DNA_Storage/0.GenomePreservation/20260408-NGS-Maqiang/X101SC26038058-Z01/X101SC26038058-Z01-J001/01.RawData/A/A_1.fq.gz'
 
 # file_type = 'dump_kmers'
-output_file = 'output.ecc'
+# output_file = 'output.ecc'
 
 kmer_size = 27
 kmer_cut_off = 5
@@ -42,14 +43,14 @@ output_file = str(kmer_cut_off) + '.ECC'
 chunk_size = 35
 
 chunk_num = 3142
-fountain_seed = 2222
+fountain_seed = 1
 index_bytes = 4
 crc_bytes = 2
 # double_index = False
 # both_way = True
 index_l = 1
 index_u = (chunk_num * 2) + index_l
-
+index_u = 1000
 # sec_key = 0b10101010101111011001010100110110
 # # sec_key = 0b10101010101111011001010100110111 # wrong key
 # sec_key = sec_key.to_bytes(8, byteorder ='big')
@@ -125,6 +126,8 @@ start = time.perf_counter()
 
 deG = DeBruijnGraph()
 deG.set_kmer_len(kmer_size)
+deG.primerF = primerF
+deG.primerE = primerE
 deG.min_cov = kmer_cut_off + 1
 deG.max_path_num = 1000000
 

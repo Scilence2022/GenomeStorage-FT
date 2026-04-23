@@ -125,14 +125,37 @@ class DNADroplet(Droplet):
         return bytesToDNA(allbytes)
 
     def set_droplet_from_DNA_CRC(self, dnastr):
+        """
+        Set droplet data from DNA string with CRC validation.
+        
+        Args:
+            dnastr: DNA string containing index, data, and CRC
+            
+        Returns:
+            True if CRC validation passes, False otherwise
+        """
+        # Extract CRC from DNA string
+        crc_start = self.head_index_len + self.data_len
+        crc_end = crc_start + self.crc_len
+        crc_bytes = DNAToBytes(dnastr[crc_start:crc_end])
+        received_crc = int.from_bytes(crc_bytes, 'big', signed=False)
+        
+        # Extract and set data based on encryption mode
         if self.des:
             data_bytes = DNAToBytes(dnastr[self.head_index_len:self.head_index_len + self.des_data_len])
             self.des_data = data_bytes
             self.decry_data()
-            # self.data = des_de(data_bytes, self.sec_key)
         else:
             data_bytes = DNAToBytes(dnastr[self.head_index_len:self.head_index_len + self.data_len])
             self.data = data_bytes
+        
+        # Calculate CRC for validation
+        self._crc()
+        
+        # Validate CRC
+        if self.crc != received_crc:
+            return False
+        
         self.update()
         return True
     #

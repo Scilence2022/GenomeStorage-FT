@@ -27,6 +27,7 @@ import time
 #####
 
 primerF = 'ATAAGAGGACCTGCCG'  # 5'-->3'
+primerF = 'TATCGATGACCTCGAGGA'
 primerE = 'CTCGAGGTCATCGATA'  # complement seq of P2
 
 delta = 0.01
@@ -38,8 +39,8 @@ input_file = r'/data/songlf/0.DNA_Storage/0.GenomePreservation/20260408-NGS-Maqi
 # output_file = 'output.ecc'
 
 kmer_size = 27
-kmer_cut_off = 5
-output_file = str(kmer_cut_off) + '.ECC'
+kmer_cut_off = 10
+output_file = r'output_files/' + str(kmer_cut_off) + '.ECC'
 chunk_size = 35
 
 chunk_num = 3142
@@ -50,7 +51,7 @@ crc_bytes = 2
 # both_way = True
 index_l = 1
 index_u = (chunk_num * 2) + index_l
-index_u = 1000
+index_u = 3700
 # sec_key = 0b10101010101111011001010100110110
 # # sec_key = 0b10101010101111011001010100110111 # wrong key
 # sec_key = sec_key.to_bytes(8, byteorder ='big')
@@ -168,7 +169,7 @@ for index in range(index_l, index_u+1):
         if len(fd_droplets) > 1:
             print("Multiple droplets found with index " + str(index))
 
-hashToFile2(deG.path_sta, output_file + "cut_sta")
+# hashToFile(deG.path_sta, output_file + "cut_sta")
 
 print('Decoding by fountain codes .........')
 

@@ -39,15 +39,18 @@ class DeBruijnGraph:
         self.kmer_len = km_len
         self.counts = khmer.Counttable(km_len, size, table_num)
 
-    def find_droplets(self, index, droplet_template):
+    def find_droplets(self, index, droplet_template:DNADroplet):
         path_len = 0
         if droplet_template.des:
             path_len = droplet_template.des_data_len + droplet_template.crc_len
         else:
             path_len = len(droplet_template.data) * 4 + droplet_template.crc_len
 
-        self.find_paths(index, path_len)
-        print('find_droplets path len:')
+        droplet_template.set_head_index(index)
+        index_dna = droplet_template.get_head_index_dna()
+        self.find_paths(index_dna, path_len)
+        print(index, end='\t')
+        print('find_droplets path len:', end = '\t')
         print(path_len)
 
 
@@ -65,9 +68,9 @@ class DeBruijnGraph:
         return all_droplets
 
 
-    def find_paths(self, index, path_len=36*4):
-        index_dna = bytesToDNA(index.to_bytes(self.index_byte_num, 'big', signed=False))
-        print(index,end='\t')
+    def find_paths(self, index_dna, path_len=36*4):
+        # index_dna = bytesToDNA(index.to_bytes(self.index_byte_num, 'big', signed=False))
+        # print(index,end='\t')
         print(index_dna)
         self.obtained_paths = []
         self.paths = [self.primerF + index_dna]

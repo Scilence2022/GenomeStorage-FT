@@ -137,7 +137,7 @@ class DeBruijnGraph:
             index_dna: DNA sequence representing the index
             path_len: Target length for the paths (excluding primer)
         """
-        print(index_dna)
+        print(index_dna, end='\t')
         self.init_paths(index_dna)
         # self.obtained_paths = []
         # self.paths = [self.primerF + index_dna]

@@ -6,43 +6,27 @@ from deBruijnGraph import DeBruijnGraph
 from glass import Glass
 from DNAdroplet import DNADroplet
 import time
-# import os.path
-# import getopt
+import os.path
+import getopt
 
-#####
-# chunk_size = 35
-# fountain_seed = 2222
-# droplet_num = 2000
-# double_index = False
-# start_index = 1
-# work_dir = r''
-# input_file = ''
-# output_file = ''  # Will be set to input_file + ".fasta" if not specified
-# index_bytes = 4
-# anchor_bytes = 4
-# ec_bytes = 2
-# redundancy_rate = 0
-# test_num = 0
-# test_dropout_rate = 0.05
-#####
 
-primerF = 'ATAAGAGGACCTGCCG'  # 5'-->3'
 primerF = 'TATCGATGACCTCGAGGA'
-primerE = 'CTCGAGGTCATCGATA'  # complement seq of P2
+
 
 delta = 0.01
 c_value = 0.01
 
-input_file = r'/data/songlf/0.DNA_Storage/0.GenomePreservation/20260408-NGS-Maqiang/X101SC26038058-Z01/X101SC26038058-Z01-J001/01.RawData/A/A_1.fq.gz'
+input_file = r''
 
-ecc_file_bytes = 109953
+total_bytes = 109953
 
 # file_type = 'dump_kmers'
 # output_file = 'output.ecc'
 
 kmer_size = 27
 kmer_cut_off = 10
-output_file = r'output_files/' + str(kmer_cut_off) + '22.ECC'
+
+output_file = r'output_files/' + str(kmer_cut_off) + '.decoded.ECC'
 chunk_size = 35
 
 chunk_num = 3142
@@ -67,62 +51,70 @@ def droplet_tp():
     return adp
 
 
-#
-#
-# opts,args = getopt.getopt(sys.argv[1:],'-h-i:-o:t:-k:-c:-n:-s:-a-b',
-#                           ['help','input=','output=', 'file_type=', 'kmer_size=', 'chunk_size=', 'chunk_num=', 'seed=', 'anchor', 'both_way', 'min_index=',  'max_index=', 'index_bytes=', 'ec_bytes='])
-#
-# usage = 'Usage:\n' + r'      python decode.py -i input_file -t type_of_seqs -o outfile [Options]'
-# options = 'Options:\n'
-# options = options + r'      -h, --help                              Show help information' + '\n'
-# options = options + r'      -i, --input   <input file>              Input file' + '\n'
-# options = options + r'      -t, --file_type   <file type>           Input file type: FastQ, Fasta or Jellyfish dumped k-mers (default)' + '\n'
-# options = options + r'      -o, --output  <output file>             Output file' + '\n'
-# options = options + r'      -k, --kmer_size  <number>               k-mer size, default = 21 ' + '\n'
-# options = options + r'      -c, --chunk_size  <size>                Chunk size, default = 30 (bytes)' + '\n'
-# options = options + r'      -n, --chunk_num  <number>               Chunk number, default = 10,741 (for testing only)' + '\n'
-# options = options + r'      --cut  <number>                         Cut_off for elimination of low coverage k-mers, default = 0 ' + '\n'
-# options = options + r'      -s, --seed    <seed>                    Fountain random seed, default 1' + '\n'
-# # options = options + r'      -a, --anchor                            Anchor codes, default On' + '\n'
-# # options = options + r'      -b, --both_way                          Both-way search mode, default On' + '\n'
-# options = options + r'      --min_index  <initial index>            Initial index, default = 1' + '\n'
-# options = options + r'      --max_index  <max index>                Max index, default = 20000' + '\n'
-# options = options + r'      --index_bytes  <number>                 Length of index and anchor codes, default = 4 (bytes)' + '\n'
-# options = options + r'      --ec_bytes  <number>                    Length of ec codes, default = 4 (bytes)' + '\n'
 
-#
-# for opt_name,opt_value in opts:
-#     if opt_name in ('-h','--help'):
-#         print(usage)
-#         print(options)
-#         sys.exit()
-#     if opt_name in ('-i','--input'):
-#         input_file = opt_value
-#     if opt_name in ('-o','--output'):
-#         output_file = opt_value
-#     if opt_name in ('-t','--file_type'):
-#         file_type = opt_value
-#     if opt_name in ('-k','--kmer_size'):
-#         kmer_size = int(opt_value)
-#     if opt_name in ('-c','--chunk_size'):
-#         chunk_size = int(opt_value)
-#     if opt_name in ('-n', '--chunk_num'):
-#         chunk_num = int(opt_value)
-#     if opt_name in ('-s', '--seed'):
-#         f_seed = int(opt_value)
-#     # if opt_name in ('-a', '--anchor'):
-#     #     double_index = True
-#     if opt_name in ('--min_index', '--notmatch'):
-#         index_l = int(opt_value)
-#
-#     if opt_name in ('--max_index', '--notmatch'):
-#         index_u = int(opt_value)
-#
-#     if opt_name in ('--index_bytes', '--notmatch'):
-#         index_bytes = int(opt_value)
-#
-#     if opt_name in ('--crc_bytes', '--notmatch'):
-#         crc_bytes = int(opt_value)
+
+opts,args = getopt.getopt(sys.argv[1:],'-h-i:-o:t:-k:-c:-n:-s:-a-b',
+                          ['help','input=','output=', 'file_type=', 'kmer_size=', 'chunk_size=', 'chunk_num=', 'seed=', 'anchor', 'both_way', 'min_index=',  'max_index=', 'index_bytes=', 'ec_bytes=', 'total_bytes=', 'primer='])
+
+usage = 'Usage:\n' + r'      python decode.py -i input_file -t type_of_seqs -o outfile [Options]'
+options = 'Options:\n'
+options = options + r'      -h, --help                              Show help information' + '\n'
+options = options + r'      -i, --input   <input file>              Input file' + '\n'
+options = options + r'      -t, --file_type   <file type>           Input file type: FastQ, Fasta or Jellyfish dumped k-mers (default)' + '\n'
+options = options + r'      -o, --output  <output file>             Output file' + '\n'
+options = options + r'      -k, --kmer_size  <number>               k-mer size, default = 21 ' + '\n'
+options = options + r'      -c, --chunk_size  <size>                Chunk size, default = 30 (bytes)' + '\n'
+options = options + r'      -n, --chunk_num  <number>               Chunk number, default = 10,741 (for testing only)' + '\n'
+options = options + r'      --cut  <number>                         Cut_off for elimination of low coverage k-mers, default = 0 ' + '\n'
+options = options + r'      -s, --seed    <seed>                    Fountain random seed, default 1' + '\n'
+# options = options + r'      -a, --anchor                            Anchor codes, default On' + '\n'
+# options = options + r'      -b, --both_way                          Both-way search mode, default On' + '\n'
+options = options + r'      --min_index  <initial index>            Initial index, default = 1' + '\n'
+options = options + r'      --max_index  <max index>                Max index, default = 20000' + '\n'
+options = options + r'      --index_bytes  <number>                 Length of index and anchor codes, default = 4 (bytes)' + '\n'
+options = options + r'      --ec_bytes  <number>                    Length of ec codes, default = 4 (bytes)' + '\n'
+options = options + r'      --total_bytes  <number>                 Total bytes of original file, default = 109953' + '\n'
+options = options + r'      --primer  <sequence>                    Forward primer sequence, default = TATCGATGACCTCGAGGA' + '\n'
+
+
+for opt_name,opt_value in opts:
+    if opt_name in ('-h','--help'):
+        print(usage)
+        print(options)
+        sys.exit()
+    if opt_name in ('-i','--input'):
+        input_file = opt_value
+    if opt_name in ('-o','--output'):
+        output_file = opt_value
+    if opt_name in ('-t','--file_type'):
+        file_type = opt_value
+    if opt_name in ('-k','--kmer_size'):
+        kmer_size = int(opt_value)
+    if opt_name in ('-c','--chunk_size'):
+        chunk_size = int(opt_value)
+    if opt_name in ('-n', '--chunk_num'):
+        chunk_num = int(opt_value)
+    if opt_name in ('-s', '--seed'):
+        f_seed = int(opt_value)
+    # if opt_name in ('-a', '--anchor'):
+    #     double_index = True
+    if opt_name in ('--min_index', '--notmatch'):
+        index_l = int(opt_value)
+
+    if opt_name in ('--max_index', '--notmatch'):
+        index_u = int(opt_value)
+
+    if opt_name in ('--index_bytes', '--notmatch'):
+        index_bytes = int(opt_value)
+
+    if opt_name in ('--crc_bytes', '--notmatch'):
+        crc_bytes = int(opt_value)
+
+    if opt_name in ('--total_bytes',):
+        total_bytes = int(opt_value)
+
+    if opt_name in ('--primer',):
+        primerF = opt_value
 
 
 start = time.perf_counter()
@@ -130,7 +122,7 @@ start = time.perf_counter()
 deG = DeBruijnGraph()
 deG.set_kmer_len(kmer_size)
 deG.primerF = primerF
-deG.primerE = primerE
+
 deG.min_cov = kmer_cut_off + 1
 deG.max_path_num = 1000000
 
@@ -177,7 +169,7 @@ print('Decoding by fountain codes .........')
 
 cup.decode()
 if cup.isDone():
-    cup.writeToFile(output_file, ecc_file_bytes)
+    cup.writeToFile(output_file, total_bytes)
 else:
     print("Failed to decode the original information.")
 

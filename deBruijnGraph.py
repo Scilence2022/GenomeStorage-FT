@@ -19,7 +19,7 @@ class DeBruijnGraph:
         self.index_byte_num = 4
         self.path_len = 0
         # self.dataEncodingDnaLength = 150
-        self.ratio_tolerance = 200
+        self.ratio_tolerance = 3
 
         self.set_max_kmer_num = False
         self.max_path_num = 1000

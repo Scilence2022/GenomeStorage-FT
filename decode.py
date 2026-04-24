@@ -35,12 +35,14 @@ c_value = 0.01
 
 input_file = r'/data/songlf/0.DNA_Storage/0.GenomePreservation/20260408-NGS-Maqiang/X101SC26038058-Z01/X101SC26038058-Z01-J001/01.RawData/A/A_1.fq.gz'
 
+ecc_file_bytes = 109953
+
 # file_type = 'dump_kmers'
 # output_file = 'output.ecc'
 
 kmer_size = 27
 kmer_cut_off = 10
-output_file = r'output_files/' + str(kmer_cut_off) + '.ECC'
+output_file = r'output_files/' + str(kmer_cut_off) + '22.ECC'
 chunk_size = 35
 
 chunk_num = 3142
@@ -175,7 +177,7 @@ print('Decoding by fountain codes .........')
 
 cup.decode()
 if cup.isDone():
-    cup.writeToFile(output_file)
+    cup.writeToFile(output_file, ecc_file_bytes)
 else:
     print("Failed to decode the original information.")
 

@@ -87,11 +87,34 @@ class Glass:
             text = text + drops.toDNA() + "\n"
         return text
 
-    def writeToFile(self, output_file):
+    def writeToFile(self, output_file, max_bytes=None):
+        """
+        Write decoded chunks to output file.
+        
+        Args:
+            output_file: Path to the output file
+            max_bytes: Maximum number of bytes to write. If None, write all chunks.
+        """
         OUT = open(output_file, 'wb')
         i = 0
+        bytes_written = 0
         while i < self.num_chunks:
-            OUT.write(self.chunks[i])
+            if self.chunks[i] is not None:
+                chunk_data = self.chunks[i]
+                if max_bytes is not None:
+                    remaining_bytes = max_bytes - bytes_written
+                    if remaining_bytes <= 0:
+                        break
+                    # Write only the remaining bytes if chunk exceeds limit
+                    if len(chunk_data) > remaining_bytes:
+                        OUT.write(chunk_data[:remaining_bytes])
+                        bytes_written += remaining_bytes
+                        break
+                    else:
+                        OUT.write(chunk_data)
+                        bytes_written += len(chunk_data)
+                else:
+                    OUT.write(chunk_data)
             i = i + 1
         OUT.close()
         return True

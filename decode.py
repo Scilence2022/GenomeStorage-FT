@@ -23,7 +23,7 @@ total_bytes = 109953
 # file_type = 'dump_kmers'
 # output_file = 'output.ecc'
 
-kmer_size = 27
+kmer_size = 21
 kmer_cut_off = 10
 
 output_file = r'output_files/' + str(kmer_cut_off) + '.decoded.ECC'
@@ -63,9 +63,9 @@ options = options + r'      -i, --input   <input file>              Input file' 
 options = options + r'      -t, --file_type   <file type>           Input file type: FastQ, Fasta or Jellyfish dumped k-mers (default)' + '\n'
 options = options + r'      -o, --output  <output file>             Output file' + '\n'
 options = options + r'      -k, --kmer_size  <number>               k-mer size, default = 21 ' + '\n'
-options = options + r'      -c, --chunk_size  <size>                Chunk size, default = 30 (bytes)' + '\n'
+options = options + r'      -c, --chunk_size  <size>                Chunk size, default = 35 (bytes)' + '\n'
 options = options + r'      -n, --chunk_num  <number>               Chunk number, default = 10,741 (for testing only)' + '\n'
-options = options + r'      --cut  <number>                         Cut_off for elimination of low coverage k-mers, default = 0 ' + '\n'
+options = options + r'      --cut  <number>                         Cut_off for elimination of low coverage k-mers, default = 10 ' + '\n'
 options = options + r'      -s, --seed    <seed>                    Fountain random seed, default 1' + '\n'
 # options = options + r'      -a, --anchor                            Anchor codes, default On' + '\n'
 # options = options + r'      -b, --both_way                          Both-way search mode, default On' + '\n'
